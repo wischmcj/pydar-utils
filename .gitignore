@@ -116,3 +116,4 @@ testing_example/*
 examples/*
 package_config_local.toml
 log_config_local.yml
+.venv/*

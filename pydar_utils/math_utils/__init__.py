@@ -1,6 +1,6 @@
 """Mathematical utilities for fitting, interpolation, and general math operations."""
 
-__version__ = "0.0.2"
+__version__ = "0.0.4"
 
 from .fit import (
     z_align_and_fit,
@@ -32,7 +32,6 @@ __all__ = [
     "fit_shape_RANSAC",
     # general
     "get_percentile",
-    "poprow",
     "rotation_matrix_from_arr",
     "unit_vector",
     "angle_from_xy_plane",

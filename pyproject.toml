@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pydar_utils"
-version = "0.0.3"
+version = "0.0.4"
 description = "Python Utilities for TLS LiDAR Scans of Trees"
 readme = "README.md"
 license-files = ["LICENSE.txt"]
@@ -43,6 +43,18 @@ dependencies = [
     "mistree>=0.1.0",
     "robust-laplacian>=0.1.0",
     "plyfile>=0.7.0",
+    "joblib",
+    "scikit-learn",
+    "tqdm",
+    "imageio",
+    "pyvista",
+    "prettytable",
+    "laspy",
+    "pyransac3d",
+    "pymeshfix",
+    "toml",
+    "PyYAML",
+    "rich",
 ]
 
 [project.optional-dependencies]

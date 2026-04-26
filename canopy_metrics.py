@@ -7,7 +7,7 @@ import open3d as o3d
 import numpy as np
 from numpy import asarray as arr
 # Utility function to convert Open3D geometry to a dictionary format
-from open3d.visualization.tensorboard_plugin.util import to_dict_batch
+# from open3d.visualization.tensorboard_plugin.util import to_dict_batch
 
 from open3d.io import read_point_cloud as read_pcd
 from tqdm import tqdm
@@ -54,7 +54,7 @@ def identify_epiphytes(file_content, save_gif=False, out_path = '/media/penguama
     orig_colors = deepcopy(arr(clean_pcd.colors))
     c_mag = np.array([np.linalg.norm(x) for x in shift_one])
     
-    highc_idxs, highc,lowc = split_on_percentile(clean_pcd,c_mag,45, color_on_percentile=True)
+    highc_idxs, highc,lowc = split_on_percentile(clean_pcd, 45, c_mag)
     clean_pcd.colors = o3d.utility.Vector3dVector(orig_colors)
     lowc = clean_pcd.select_by_index(highc_idxs, invert=True)
     highc = clean_pcd.select_by_index(highc_idxs, invert=False)
@@ -64,7 +64,7 @@ def identify_epiphytes(file_content, save_gif=False, out_path = '/media/penguama
     # draw([lowc])
     high_shift = shift_one[highc_idxs]
     z_mag = np.array([x[2] for x in high_shift])
-    leaves_idxs, leaves, epis = split_on_percentile(highc,z_mag,60, color_on_percentile=True)
+    leaves_idxs, leaves, epis = split_on_percentile(highc,60, z_mag)
     epis_colored  = highc.select_by_index(leaves_idxs, invert=True)
     
     # draw([lowc, leaves,epis])
@@ -168,7 +168,7 @@ def contract(in_pcd,shift, invert=False):
 
 
 def contraction_analysis(file_content, pcd, shift):
-    seed, pcd, clean_pcd, shift_one = file_content['seed'], file_content['src'], file_content['clean_pcd'], file_content['shift_one']
+    seed, pcd, clean_pcd, shift_one = file_content['seed'], file_content['pcd'], file_content['clean_pcd'], file_content['shift_one']
     green = get_green_surfaces(pcd)
     not_green = get_green_surfaces(pcd,True)
     # draw(lowc_pcd)
@@ -178,7 +178,7 @@ def contraction_analysis(file_content, pcd, shift):
     c_mag = np.array([np.linalg.norm(x) for x in shift])
     z_mag = np.array([x[2] for x in shift])
 
-    highc_idxs, highc, lowc = split_on_percentile(pcd,c_mag,70)
+    highc_idxs, highc, lowc = split_on_percentile(pcd,70, c_mag)
 
     z_cutoff = np.percentile(z_mag,80)
     log.info(f'{z_cutoff=}')
@@ -187,7 +187,7 @@ def contraction_analysis(file_content, pcd, shift):
     ztrimmed_shift = shift[low_idxs]
     ztrimmed_cmag = c_mag[low_idxs]
     draw(lowc)
-    highc_idxs, highc, lowc = split_on_percentile(lowc,c_mag,70)
+    highc_idxs, highc, lowc = split_on_percentile(lowc,70, c_mag)
 
     # color_continuous_map(test,c_mag)
     highc_idxs = np.where(c_mag>np.percentile(c_mag,70))[0]
@@ -207,6 +207,13 @@ def split_on_pct(pcd,pct,cmag=None, shift=None):
     lowc = pcd.select_by_index(highc_idxs, invert=True)
     highc = pcd.select_by_index(highc_idxs)
     return lowc,highc
+
+def get_center_point(file_content, out_dir='data/center_points'):
+    seed, pcd, clean_pcd, shift_one = file_content['seed'], file_content['pcd'], file_content['clean_pcd'], file_content['shift_one']
+    highc_idxs, highc_pcd,lowc_pcd = split_on_percentile(clean_pcd,6, np.array(clean_pcd.points)[:,2])
+    return {'seed':seed, 
+            'trunk_center': lowc_pcd.get_center(),
+            'overall': clean_pcd}
 
 def expand_features_to_orig(nbr_pcd, orig_pcd, nbr_data):
     # # get neighbors of comp_pcd in the extracted feat pcd
@@ -230,7 +237,7 @@ def width_at_height(file_content, save_gif=False, height=1.37, tolerance=0.1, ax
     """
     Calculate the width of a point cloud at a given height above ground.
     """
-    seed, pcd, clean_pcd, shift_one = file_content['seed'], file_content['src'], file_content['clean_pcd'], file_content['shift_one']
+    seed, pcd, clean_pcd, shift_one = file_content['seed'], file_content['pcd'], file_content['clean_pcd'], file_content['shift_one']
     import numpy as np
     height = 2.8
     # Get a 'slice' of the pointcloud at the given height
@@ -308,7 +315,7 @@ def project_in_slices(pcd,seed, name='', off_screen = True,alpha=70,target_dir='
     for slice_name, slice_points in slices.items():
         mesh = project_pcd(pts=slice_points, alpha=alpha, plot=True, seed=seed, name=name, sub_name=slice_name, off_screen=off_screen, screen_shots=[[-10,0,0]], 
         target_dir=target_dir)
-        # geo = mesh.extract_geometry()
+        # geo = mesh.extract_geometry()project_in_slices
         metrics[slice_name] ={'mesh': mesh, 'mesh_area': mesh.area }
     metrics['total_area'] = np.sum([x['mesh_area'] for x in metrics.values()])
     log.info(f'{name} total area: {metrics["total_area"]}')
@@ -344,7 +351,7 @@ def project_components_in_slices(pcd, clean_pcd, epis, leaves, wood ,seed, name=
 def project_components_in_clusters(in_pcd, clean_pcd, epis, leaves, wood ,seed, name='', off_screen = True,
                                     voxel_size=.25, eps=120, min_points=30, target_dir='data/projection'):
     metrics=defaultdict(dict)
-    from geometry.point_cloud_processing import cluster_plus
+    from pydar_utils.geometry.point_cloud_processing import cluster_plus
     import pickle
     for case in [
                 #(epis, 'epi_clusters'), 

@@ -327,10 +327,10 @@ def color_distribution(in_colors,oth_colors=None,cutoff=1,elev=40, azim=110, rol
     return corrected_rgb_full,hsv_fulls
 
 def split_on_percentile(pcd,
-                        val_list,
                         pctile,
+                        val_list,
                         comp=lambda x,y:x>y,
-                        color_on_percentile=False):
+                        color_on_percentile=False):                 
     if len(pcd.points)!= len(val_list):
         msg = f'length of val list does not match size of pcd'
         log.error(f'length of val list does not match size of pcd')

@@ -6,6 +6,7 @@ from pydar_utils.math_utils.general import get_percentile, get_center, get_radiu
 import open3d as o3d
 from pydar_utils.viz.viz_utils import draw
 import matplotlib.pyplot as plt
+import scipy.spatial as sps
 
 log = getLogger(__name__)
 

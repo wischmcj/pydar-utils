@@ -1,6 +1,6 @@
 """General utilities for I/O, algorithms, and library integration."""
 
-__version__ = "0.0.2"
+__version__ = "0.0.4"
 
 from .algo import smooth_feature
 from .general import list_if, poprow

@@ -7,3 +7,16 @@ networkx
 mistree
 robust_laplacian
 plyfile
+joblib
+scikit-learn
+tqdm
+imageio
+pyvista
+prettytable
+laspy
+pyransac3d
+pymeshfix
+toml
+PyYAML
+rich
+tensorboard

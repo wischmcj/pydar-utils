@@ -4,7 +4,7 @@ A comprehensive toolkit for processing, analyzing, and visualizing terrestrial l
 data of trees, including point cloud processing, mesh reconstruction, skeletonization, and QSM generation.
 """
 
-__version__ = "0.0.2"
+__version__ = "0.0.4"
 import os 
 from .set_config import load_config
 # Load unconfigured logger 
@@ -44,6 +44,7 @@ from . import viz
 # Import commonly used functions at package level for convenience
 from .geometry import zoom_pcd
 from .math_utils import z_align_and_fit, get_center, rotation_matrix_from_arr
+from .processing import clean_cloud, crop_and_highlight
 from .utils import save, load, convert_las, to_o3d
 from .viz import draw, plot_3d
 
@@ -64,7 +65,6 @@ __all__ = [
     "to_o3d",
     "draw",
     "plot_3d",
-    "cluster_color",
     "clean_cloud",
     "crop_and_highlight",
 ]

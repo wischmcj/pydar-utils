@@ -85,9 +85,9 @@ def get_data_from_config(seed_file_info, data_file_config):
         if len(file_type) != len(load_value):
             raise ValueError(f'length of values returned by {load_func.__name__} ({len(load_value)}) is not equal to the length of the file_type {file_type}')
         
-        for key, value in zip(file_type, load_value):
+        for key, value in zip(list(file_type), load_value):
             seed_to_content[key] = value
-            seed_to_content[f'{file_type}_file'] = file_path
+            seed_to_content[f'{key}_file'] = file_path
     return seed_to_content
 
 def loop_over_files(func,args = [], kwargs =[],
@@ -156,3 +156,50 @@ def loop_over_files(func,args = [], kwargs =[],
             #     errors.append(seed)
     print(f'{errors=}')
     print(f'{results=}')
+    return results 
+
+if __name__ == '__main__':
+    from canopy_metrics import get_center_point
+
+    requested_seeds = []
+    # base_dir = '/media/penguaman/tosh2b2/lidar_sync/pyqsm/skio/cluster_joining'
+
+                    
+    base_dir = '/media/penguaman/tosh2b/lidar_sync/py_qsm/skio/cluster_joining'
+
+    results = loop_over_files(
+                    get_center_point,
+                    requested_seeds=requested_seeds,
+                    parallel = False,
+                    base_dir=base_dir,
+                    data_file_config={ 
+                        ('pcd','clean_pcd'): {
+                                'folder': 'detail/',
+                                'file_pattern': f'*.npz',
+                                'load_func': read_and_downsample, 
+                                'kwargs': {'voxel_size': .05, 'uniform_down_sample': 3}
+                            },
+                    },
+                    seed_pat = re.compile('.*(skio_[0-9]{1,3}_tl_[0-9]{1,3}).*')
+                    )
+                    # INSERT_YOUR_CODE
+    from stand_id import cluster_and_plot, average_distance_between_points, get_seed_names, compute_convex_hulls, compute_convex_hull_metrics
+    seed_names, pcd_dict = get_seed_names(results)
+    center_pts = [d['trunk_center'] for d in pcd_dict]
+    for d in pcd_dict: d['foo'] =d['trunk_center']
+    avg_dist = average_distance_between_points(pcd_dict, center_metrics=['trunk_center'])['trunk_center']
+    breakpoint()
+    # Example data: results = [...] from loop_over_files
+    if 'results' in locals() and results:   
+        pcd_dicts, stand_pcds = cluster_and_plot(    [r for r in pcd_dict if r is not None], center_metrics=['trunk_center'],    n_clusters=5, eps= avg_dist*.25)
+        # INSERT_YOUR_CODE
+
+        import open3d as o3d
+        stand_convex_hulls = compute_convex_hulls(stand_pcds)
+        for stand_id, hull in stand_convex_hulls.items(): o3d.io.write_triangle_mesh(f'stand_convex_hull_{stand_id}.ply', hull)
+        stand_convex_hull_metrics = compute_convex_hull_metrics(stand_convex_hulls)
+        stand_map = [{'seed_name': d['seed_name'],  'stand_id': d['stand_id'], 'center_point': d['trunk_center'], '3d_volume': stand_convex_hull_metrics[d['stand_id']]['3d_volume'], '3d_surface_area': stand_convex_hull_metrics[d['stand_id']]['3d_surface_area'], '2d_area': stand_convex_hull_metrics[d['stand_id']]['2d_area']} for d in pcd_dicts]
+        print('Average distance:', avg_dist)
+        # INSERT_YOUR_CODE
+
+        
